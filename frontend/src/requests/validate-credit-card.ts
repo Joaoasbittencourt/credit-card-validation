@@ -1,14 +1,14 @@
-import { CreditCardValidationResponse } from "../../../api/types";
+import { CreditCard, CreditCardValidationResponse } from "../../../api/types";
 
 const url = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 export const validateCreditCard = async (
-  cardNumber: string
+  creditCard: CreditCard
 ): Promise<CreditCardValidationResponse> => {
   const response = await fetch(`${url}/credit-cards/validate`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ cardNumber }),
+    body: JSON.stringify(creditCard),
   });
 
   const data = await response.json();

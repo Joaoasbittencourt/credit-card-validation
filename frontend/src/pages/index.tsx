@@ -9,15 +9,26 @@ import {
   CardBody,
   FormControl,
   FormLabel,
-  FormErrorMessage,
   Alert,
   AlertIcon,
 } from "@chakra-ui/react";
 import { validateCreditCard } from "../requests/validate-credit-card";
-import { CreditCardValidationResponse } from "../../../api/types";
+import {
+  CreditCardField,
+  CreditCardValidationResponse,
+} from "../../../api/types";
+import { MultiFormErrorMessage } from "../components/multi-form-error-message";
+
+const getFieldErrors = (
+  validation: CreditCardValidationResponse | null,
+  field: CreditCardField
+) => {
+  return validation?.valid ? [] : validation?.errors[field] || [];
+};
 
 export default function Home() {
   const [cardNumber, setCardNumber] = useState("");
+  const [holderName, setHolderName] = useState("");
   const [validation, setValidation] =
     useState<CreditCardValidationResponse | null>(null);
 
@@ -29,7 +40,7 @@ export default function Home() {
       e.preventDefault();
       setError(null);
       setLoading(true);
-      const res = await validateCreditCard(cardNumber);
+      const res = await validateCreditCard({ cardNumber, holderName });
       setValidation(res);
     } catch (error) {
       setError((error as any).message);
@@ -37,6 +48,9 @@ export default function Home() {
       setLoading(false);
     }
   };
+
+  const cardNumberErrors = getFieldErrors(validation, "cardNumber");
+  const holderNameErrors = getFieldErrors(validation, "holderName");
 
   return (
     <Container textAlign="center" py={10} px={6}>
@@ -54,17 +68,31 @@ export default function Home() {
                 handleSubmit(e as React.FormEvent<HTMLFormElement>)
               }
             >
-              <FormControl isInvalid={!!validation && !validation.valid}>
+              <FormControl isInvalid={cardNumberErrors.length > 0}>
                 <FormLabel>Card number</FormLabel>
                 <Input
                   value={cardNumber}
                   type="text"
-                  pattern="[0-9]*"
-                  inputMode="numeric"
                   placeholder="1234567812345678"
                   onChange={(e) => setCardNumber(e.target.value)}
                 />
-                <FormErrorMessage>Invalid Credit Card Number</FormErrorMessage>
+                <MultiFormErrorMessage
+                  name="cardNumber"
+                  errors={cardNumberErrors}
+                />
+              </FormControl>
+              <FormControl isInvalid={holderNameErrors.length > 0}>
+                <FormLabel>Holder Name</FormLabel>
+                <Input
+                  value={holderName}
+                  type="text"
+                  placeholder="John Doe"
+                  onChange={(e) => setHolderName(e.target.value)}
+                />
+                <MultiFormErrorMessage
+                  name="holderName"
+                  errors={holderNameErrors}
+                />
               </FormControl>
               <Button isLoading={loading} type={"submit"}>
                 Validate
