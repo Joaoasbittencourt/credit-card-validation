@@ -11,12 +11,10 @@ import {
   FormLabel,
   Alert,
   AlertIcon,
+  HStack,
 } from "@chakra-ui/react";
 import { validateCreditCard } from "../requests/validate-credit-card";
-import {
-  CreditCardField,
-  CreditCardValidationResponse,
-} from "../../../api/types";
+import { CreditCardField, CreditCardValidationResponse } from "../types";
 import { MultiFormErrorMessage } from "../components/multi-form-error-message";
 
 const getFieldErrors = (
@@ -27,20 +25,32 @@ const getFieldErrors = (
 };
 
 export default function Home() {
-  const [cardNumber, setCardNumber] = useState("");
-  const [holderName, setHolderName] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [validation, setValidation] =
     useState<CreditCardValidationResponse | null>(null);
 
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [cardNumber, setCardNumber] = useState("");
+  const [holderName, setHolderName] = useState("");
+  const [expiration, setExpiration] = useState("");
+  const [securityCode, setSecurityCode] = useState("");
+
+  const cardNumberErrors = getFieldErrors(validation, "cardNumber");
+  const holderNameErrors = getFieldErrors(validation, "holderName");
+  const expirationErrors = getFieldErrors(validation, "expiration");
+  const securityCodeErrors = getFieldErrors(validation, "securityCode");
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     try {
       e.preventDefault();
       setError(null);
       setLoading(true);
-      const res = await validateCreditCard({ cardNumber, holderName });
+      const res = await validateCreditCard({
+        cardNumber,
+        holderName,
+        expiration,
+        securityCode,
+      });
       setValidation(res);
     } catch (error) {
       setError((error as any).message);
@@ -48,9 +58,6 @@ export default function Home() {
       setLoading(false);
     }
   };
-
-  const cardNumberErrors = getFieldErrors(validation, "cardNumber");
-  const holderNameErrors = getFieldErrors(validation, "holderName");
 
   return (
     <Container textAlign="center" py={10} px={6}>
@@ -64,6 +71,7 @@ export default function Home() {
               as="form"
               align={"flex-start"}
               width={"100%"}
+              spacing={4}
               onSubmit={(e: any) =>
                 handleSubmit(e as React.FormEvent<HTMLFormElement>)
               }
@@ -74,7 +82,9 @@ export default function Home() {
                   value={cardNumber}
                   type="text"
                   placeholder="1234567812345678"
-                  onChange={(e) => setCardNumber(e.target.value)}
+                  onChange={(e) =>
+                    setCardNumber(e.target.value.match(/\d+/g)?.join("") || "")
+                  }
                 />
                 <MultiFormErrorMessage
                   name="cardNumber"
@@ -94,6 +104,38 @@ export default function Home() {
                   errors={holderNameErrors}
                 />
               </FormControl>
+              <HStack width={"100%"} gap={2} justifyContent={"space-between"}>
+                <FormControl isInvalid={expirationErrors.length > 0}>
+                  <FormLabel>Expiration</FormLabel>
+                  <Input
+                    value={expiration}
+                    type="text"
+                    placeholder="01/2020"
+                    onChange={(e) => setExpiration(e.target.value)}
+                  />
+                  <MultiFormErrorMessage
+                    name="expiration"
+                    errors={expirationErrors}
+                  />
+                </FormControl>
+                <FormControl isInvalid={securityCodeErrors.length > 0}>
+                  <FormLabel>Security Code</FormLabel>
+                  <Input
+                    value={securityCode}
+                    type="text"
+                    placeholder="007"
+                    onChange={(e) =>
+                      setSecurityCode(
+                        e.target.value.match(/\d+/g)?.join("") || ""
+                      )
+                    }
+                  />
+                  <MultiFormErrorMessage
+                    name="holderName"
+                    errors={securityCodeErrors}
+                  />
+                </FormControl>
+              </HStack>
               <Button isLoading={loading} type={"submit"}>
                 Validate
               </Button>

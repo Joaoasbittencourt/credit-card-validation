@@ -1,6 +1,8 @@
 export type CreditCard = {
   cardNumber: string;
   holderName: string;
+  expiration: string;
+  securityCode: string;
 };
 
 export type CreditCardField = keyof CreditCard;
