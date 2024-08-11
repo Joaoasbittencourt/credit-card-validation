@@ -63,7 +63,7 @@ export default function Home() {
     <Container textAlign="center" py={10} px={6}>
       <VStack align={"flex-start"} spacing={4}>
         <Heading mb={4} size="lg">
-          Credit card
+          Credit card validator
         </Heading>
         <Card variant={"outline"} width={"100%"}>
           <CardBody width={"100%"}>
